@@ -1,7 +1,7 @@
 import scrapy
 import datetime
 import html
-
+import re
 
 class ScrapyLatestSpider(scrapy.Spider):
     name = "scrapy_latest"
@@ -16,7 +16,13 @@ class ScrapyLatestSpider(scrapy.Spider):
         content = response.xpath(
             'string(//div[@role="main"])').get().replace('\n', ' ').replace('¶', '')
 
-        code_blocks = [html.unescape(code_block) for code_block in response.xpath(
+        # List of HTML tags to remove
+        tags_to_remove = ['span', 'div', 'a', 'p', 'br', 'strong', 'em']
+
+        # Create a regular expression pattern that matches the tags in the list
+        pattern = '|'.join(f'<{tag}.*?>|</{tag}>' for tag in tags_to_remove)
+
+        code_blocks = [re.sub(pattern, '', html.unescape(code_block)) for code_block in response.xpath(
             '//div[@role="main"]//pre').getall()]
 
         link_list = []
