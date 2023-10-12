@@ -15,6 +15,32 @@ class ScrapyLatestSpider(scrapy.Spider):
         if 'text' not in content_type:
             return
 
+        # Extract sections and subsections with error handling
+        sections = []
+        for section in response.xpath('//div[@role="main"]/*[self::h1 or self::h2 or self::h3 or self::h4]'):
+            try:
+                section_title = section.xpath(
+                    'string(.)').get().replace('¶', '').strip()
+                section_content = section.xpath(
+                    'following-sibling::p[string-length(text())>0][1]').get().replace('¶', '').strip()
+                sections.append({
+                    "title": section_title if section_title else None,
+                    "content": section_content if section_content else None,
+                    "type": "section"
+                })
+            except Exception as e:
+                self.logger.error(f"Error extracting section: {e}")
+
+        # Extract paragraphs
+        paragraphs = [p.get().replace('¶', '').strip() for p in response.xpath(
+            '//div[@role="main"]//p[string-length(text())>0]')]
+
+        # Organizing the extracted data
+        content = {
+            "sections": sections,
+            "paragraphs": paragraphs,
+        }
+
         # Search for the revision and last_updated text within the page
         footer_text = response.xpath('string(//footer)').get()
 
@@ -32,9 +58,6 @@ class ScrapyLatestSpider(scrapy.Spider):
             last_updated = parse(last_updated_text).strftime('%Y-%m-%d')
         else:
             last_updated = None
-
-        content = response.xpath(
-            'string(//div[@role="main"])').get().replace('\n', ' ').replace('¶', '')
 
         # List of HTML tags to remove
         tags_to_remove = ['span', 'div', 'a', 'p', 'br', 'strong', 'em']
