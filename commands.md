@@ -1,0 +1,1 @@
+`scrapy crawl scrapy_latest --loglevel=INFO -s LOG_FILE=scrapy.log -o data/scrapy_latest.json`

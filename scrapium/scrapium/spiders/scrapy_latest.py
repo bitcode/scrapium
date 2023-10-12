@@ -2,6 +2,8 @@ import scrapy
 import datetime
 import html
 import re
+from dateutil.parser import parse
+
 
 class ScrapyLatestSpider(scrapy.Spider):
     name = "scrapy_latest"
@@ -12,6 +14,24 @@ class ScrapyLatestSpider(scrapy.Spider):
         content_type = response.headers.get('Content-Type', b'').decode()
         if 'text' not in content_type:
             return
+
+        # Search for the revision and last_updated text within the page
+        footer_text = response.xpath('string(//footer)').get()
+
+        # Use regular expressions to extract the revision and last updated date
+        revision_match = re.search(r'Revision (\w+)', footer_text)
+        last_updated_match = re.search(
+            r'Last updated on ([\w\s]+)', footer_text)
+
+        revision = revision_match.group(1) if revision_match else None
+        last_updated_text = last_updated_match.group(
+            1) if last_updated_match else None
+
+        # If found, convert the date string to a standardized format
+        if last_updated_text:
+            last_updated = parse(last_updated_text).strftime('%Y-%m-%d')
+        else:
+            last_updated = None
 
         content = response.xpath(
             'string(//div[@role="main"])').get().replace('\n', ' ').replace('¶', '')
@@ -45,7 +65,9 @@ class ScrapyLatestSpider(scrapy.Spider):
             "code_blocks": code_blocks,
             "links": link_list,
             "timestamp": datetime.datetime.utcnow().isoformat(),
-            "version": version
+            "version": version,
+            "revision": revision,
+            "last_updated": last_updated,
         }
 
         for link in non_header_links:

@@ -19,6 +19,8 @@ USER_AGENT = "scrapium (mylampdatabases@gmail.com)"
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 
+# Log Info
+LOG_LEVEL = 'INFO'
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 32
 
@@ -29,6 +31,7 @@ DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
 CONCURRENT_REQUESTS_PER_DOMAIN = 2
 CONCURRENT_REQUESTS_PER_IP = 2
+CLOSESPIDER_PAGECOUNT = 10
 
 # Disable cookies (enabled by default)
 # COOKIES_ENABLED = False
